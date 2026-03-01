@@ -2,8 +2,8 @@ import { Mars, NonBinary, Venus } from "lucide-react";
 
 import type { ContactGender } from "../types";
 
-export const contactGender: ContactGender[] = [
-  { value: "male", label: "He/Him", icon: Mars },
-  { value: "female", label: "She/Her", icon: Venus },
-  { value: "nonbinary", label: "They/Them", icon: NonBinary },
+export const contactGender = [
+  { value: "male", label: "resources.contacts.gender.male", icon: Mars },
+  { value: "female", label: "resources.contacts.gender.female", icon: Venus },
+  { value: "nonbinary", label: "resources.contacts.gender.nonbinary", icon: NonBinary },
 ];

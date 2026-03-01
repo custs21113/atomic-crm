@@ -1,4 +1,4 @@
-import { useRecordContext } from "ra-core";
+import { useRecordContext, useTranslate } from "ra-core";
 import { EditButton } from "@/components/admin/edit-button";
 import { DeleteButton } from "@/components/admin";
 import { ReferenceManyField } from "@/components/admin/reference-many-field";
@@ -16,31 +16,32 @@ import { ExportVCardButton } from "./ExportVCardButton";
 
 export const ContactAside = ({ link = "edit" }: { link?: "edit" | "show" }) => {
   const record = useRecordContext<Contact>();
+  const translate = useTranslate();
 
   if (!record) return null;
   return (
     <div className="hidden sm:block w-92 min-w-92 text-sm">
       <div className="mb-4 -ml-1">
         {link === "edit" ? (
-          <EditButton label="Edit Contact" />
+          <EditButton label={translate("crm.action.edit_contact")} />
         ) : (
-          <ShowButton label="Show Contact" />
+          <ShowButton label={translate("crm.action.show_contact")} />
         )}
       </div>
 
-      <AsideSection title="Personal info">
+      <AsideSection title={translate("crm.action.personal_info")}>
         <ContactPersonalInfo />
       </AsideSection>
 
-      <AsideSection title="Background info">
+      <AsideSection title={translate("crm.action.background_info")}>
         <ContactBackgroundInfo />
       </AsideSection>
 
-      <AsideSection title="Tags">
+      <AsideSection title={translate("crm.action.tags")}>
         <TagsListEdit />
       </AsideSection>
 
-      <AsideSection title="Tasks">
+      <AsideSection title={translate("crm.action.tasks")}>
         <ReferenceManyField
           target="contact_id"
           reference="tasks"

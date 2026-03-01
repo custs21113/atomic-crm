@@ -1,5 +1,5 @@
 import { AlertCircleIcon } from "lucide-react";
-import { Form, required } from "ra-core";
+import { Form, required, useTranslate } from "ra-core";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,12 +26,13 @@ import sampleFile from "./import-sample.json?url";
 
 export const ImportPage = () => {
   const [importState, importFile, reset] = useImportFromJson();
+  const translate = useTranslate();
 
   return (
     <div className="max-w-2xl mx-auto mt-8">
       <Card>
         <CardHeader>
-          <CardTitle>Import Data</CardTitle>
+          <CardTitle>{translate("crm.import.title")}</CardTitle>
         </CardHeader>
         <CardContent>
           {importState.status === "idle" ? (
@@ -58,26 +59,27 @@ const ImportFromJsonIdle = ({
   importFile,
 }: {
   importFile: ImportFromJsonFunction;
-}) => (
-  <>
-    <div className="mb-4">
-      <p className="text-sm">
-        You can import sales, companies, contacts, companies, notes, and tasks.
-      </p>
-      <p className="text-sm">
-        Data must be in a JSON file matching the following sample:{" "}
-        <a
-          className="underline"
-          download="import-sample.json"
-          href={sampleFile}
-        >
-          sample.json
-        </a>
-      </p>
-    </div>
-    <ImportFromJsonForm importFile={importFile} />
-  </>
-);
+}) => {
+  const translate = useTranslate();
+  return (
+    <>
+      <div className="mb-4">
+        <p className="text-sm">{translate("crm.import.subtitle")}</p>
+        <p className="text-sm">
+          {translate("crm.import.instruction")}
+          <a
+            className="underline"
+            download="import-sample.json"
+            href={sampleFile}
+          >
+            {translate("crm.import.sample")}
+          </a>
+        </p>
+      </div>
+      <ImportFromJsonForm importFile={importFile} />
+    </>
+  );
+};
 
 const ImportFromJsonError = ({
   importState,
@@ -85,51 +87,65 @@ const ImportFromJsonError = ({
 }: {
   importFile: ImportFromJsonFunction;
   importState: ImportFromJsonErrorState;
-}) => (
-  <>
-    <Alert variant="destructive" className="mb-4">
-      <AlertCircleIcon />
-      <AlertTitle>Unable to import this file.</AlertTitle>
-      <AlertDescription>
-        <p>{importState.error.message}</p>
-      </AlertDescription>
-    </Alert>
-    <ImportFromJsonForm importFile={importFile} />
-  </>
-);
+}) => {
+  const translate = useTranslate();
+  return (
+    <>
+      <Alert variant="destructive" className="mb-4">
+        <AlertCircleIcon />
+        <AlertTitle>{translate("crm.import.error_title")}</AlertTitle>
+        <AlertDescription>
+          <p>{importState.error.message}</p>
+        </AlertDescription>
+      </Alert>
+      <ImportFromJsonForm importFile={importFile} />
+    </>
+  );
+};
 
 const ImportFromJsonForm = ({
   importFile,
 }: {
   importFile: ImportFromJsonFunction;
-}) => (
-  <Form
-    onSubmit={(values: any) => {
-      importFile(values.file.rawFile);
-    }}
-  >
-    <FileInput className="mt-4" source="file" validate={required()}>
-      <FileField source="src" title="title" />
-    </FileInput>
-    <div className="flex justify-end mt-4">
-      <Button type="submit">Import</Button>
-    </div>
-  </Form>
-);
+}) => {
+  const translate = useTranslate();
+  return (
+    <Form
+      onSubmit={(values: any) => {
+        importFile(values.file.rawFile);
+      }}
+    >
+      <FileInput
+        className="mt-4"
+        source="file"
+        validate={required()}
+        label={translate("crm.misc.file_to_upload")}
+      >
+        <FileField source="src" title="title" />
+      </FileInput>
+      <div className="flex justify-end mt-4">
+        <Button type="submit">{translate("crm.import.submit")}</Button>
+      </div>
+    </Form>
+  );
+};
 
 const ImportFromJsonStatus = ({
   importState,
 }: {
   importState: ImportFromJsonState;
-}) => (
-  <>
-    <Spinner />
-    <p className="my-4 text-sm text-center text-muted-foreground">
-      Import in progress, please don't navigate away from this page.
-    </p>
-    <ImportStats importState={importState} />
-  </>
-);
+}) => {
+  const translate = useTranslate();
+  return (
+    <>
+      <Spinner />
+      <p className="my-4 text-sm text-center text-muted-foreground">
+        {translate("crm.import.in_progress")}
+      </p>
+      <ImportStats importState={importState} />
+    </>
+  );
+};
 
 const ImportFromJsonSuccess = ({
   importState,
@@ -137,29 +153,34 @@ const ImportFromJsonSuccess = ({
 }: {
   importState: ImportFromJsonState;
   reset: () => void;
-}) => (
-  <>
-    <p className="mb-4 text-sm">
-      Import complete.{" "}
-      {hasFailedImports(importState.failedImports) ? (
-        <>
-          <span className="text-destructive">
-            Some records were not imported.{" "}
-          </span>
-          <DownloadErrorFileButton failedImports={importState.failedImports} />
-        </>
-      ) : (
-        <span>All records were imported successfully.</span>
-      )}
-    </p>
-    <ImportStats importState={importState} />
-    <div className="flex justify-end mt-4">
-      <Button variant="outline" onClick={reset}>
-        Import another file
-      </Button>
-    </div>
-  </>
-);
+}) => {
+  const translate = useTranslate();
+  return (
+    <>
+      <p className="mb-4 text-sm">
+        {translate("crm.import.complete")}{" "}
+        {hasFailedImports(importState.failedImports) ? (
+          <>
+            <span className="text-destructive">
+              {translate("crm.import.failed")}
+            </span>
+            <DownloadErrorFileButton
+              failedImports={importState.failedImports}
+            />
+          </>
+        ) : (
+          <span>{translate("crm.import.success")}</span>
+        )}
+      </p>
+      <ImportStats importState={importState} />
+      <div className="flex justify-end mt-4">
+        <Button variant="outline" onClick={reset}>
+          {translate("crm.import.import_another")}
+        </Button>
+      </div>
+    </>
+  );
+};
 
 const hasFailedImports = (failedImports: ImportFromJsonFailures) => {
   return (
@@ -176,6 +197,7 @@ const DownloadErrorFileButton = ({
 }: {
   failedImports: ImportFromJsonFailures;
 }) => {
+  const translate = useTranslate();
   return (
     <a
       className="font-semibold"
@@ -187,7 +209,7 @@ const DownloadErrorFileButton = ({
       }}
       download="atomic-crm-import-report.json"
     >
-      Download the error report
+      {translate("crm.import.download_report")}
     </a>
   );
 };
@@ -197,6 +219,7 @@ const ImportStats = ({
 }: {
   importState: ImportFromJsonState;
 }) => {
+  const translate = useTranslate();
   const data = [
     {
       entity: "sales",
@@ -230,14 +253,20 @@ const ImportStats = ({
       <TableHeader>
         <TableRow>
           <TableHead className="w-25"></TableHead>
-          <TableHead className="text-right">Imported</TableHead>
-          <TableHead className="text-right">Failed</TableHead>
+          <TableHead className="text-right">
+            {translate("crm.import.imported")}
+          </TableHead>
+          <TableHead className="text-right">
+            {translate("crm.import.failed_count")}
+          </TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {data.map((record) => (
           <TableRow key={record.entity}>
-            <TableCell className="font-medium">{record.entity}</TableCell>
+            <TableCell className="font-medium">
+              {translate(`resources.${record.entity}.name`, { smart_count: 2 })}
+            </TableCell>
             <TableCell className="text-right text-success">
               {record.imported}
             </TableCell>

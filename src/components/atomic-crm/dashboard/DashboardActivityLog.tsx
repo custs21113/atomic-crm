@@ -1,28 +1,25 @@
-import { Clock } from "lucide-react";
-import { Card } from "@/components/ui/card";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useGetList, useTranslate } from "ra-core";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ActivityLogIterator } from "../activity/ActivityLogIterator";
+import type { Activity } from "../types";
 
-import { ActivityLog } from "../activity/ActivityLog";
+export const DashboardActivityLog = () => {
+  const translate = useTranslate();
+  const { data, isPending, error } = useGetList<Activity>("activity", {
+    pagination: { page: 1, perPage: 10 },
+    sort: { field: "date", order: "DESC" },
+  });
 
-export function DashboardActivityLog() {
-  const isMobile = useIsMobile();
+  if (isPending || error) return null;
+
   return (
-    <div className="flex flex-col">
-      <div className="flex items-center mb-4 md:mb-2">
-        <div className="mr-3 flex">
-          <Clock className="text-muted-foreground w-6 h-6" />
-        </div>
-        <h2 className="text-xl font-semibold text-muted-foreground">
-          Latest Activity
-        </h2>
-      </div>
-      {isMobile ? (
-        <ActivityLog pageSize={10} />
-      ) : (
-        <Card className="mb-2 p-6">
-          <ActivityLog pageSize={10} />
-        </Card>
-      )}
-    </div>
+    <Card className="flex-1">
+      <CardHeader>
+        <CardTitle>{translate("crm.dashboard.latest_activity")}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <ActivityLogIterator activities={data} />
+      </CardContent>
+    </Card>
   );
-}
+};

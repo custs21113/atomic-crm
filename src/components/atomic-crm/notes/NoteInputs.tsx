@@ -13,7 +13,7 @@ import { getCurrentDate } from "./utils";
 import { AttachmentField } from "./AttachmentField";
 import { foreignKeyMapping } from "./foreignKeyMapping";
 import { AutocompleteInput, ReferenceInput } from "@/components/admin";
-import { required } from "ra-core";
+import { required, useTranslate, Translate } from "ra-core";
 import { contactOptionText } from "../misc/ContactOption";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -30,6 +30,7 @@ export const NoteInputs = ({
   const { noteStatuses } = useConfigurationContext();
   const { setValue } = useFormContext();
   const [displayMore, setDisplayMore] = useState(false);
+  const translate = useTranslate();
 
   return (
     <div className="space-y-2">
@@ -38,7 +39,7 @@ export const NoteInputs = ({
         label={false}
         multiline
         helperText={false}
-        placeholder="Add a note"
+        placeholder={translate("crm.notes.placeholder")}
         rows={6}
       />
 
@@ -48,7 +49,7 @@ export const NoteInputs = ({
           reference={reference}
         >
           <AutocompleteInput
-            label={reference === "contacts" ? "Contact" : "Deal"}
+            label={reference === "contacts" ? translate("resources.contacts.name", { smart_count: 1 }) : translate("resources.deals.name", { smart_count: 1 })}
             optionText={
               reference === "contacts" ? contactOptionText : undefined
             }
@@ -69,10 +70,10 @@ export const NoteInputs = ({
             }}
             className="text-sm text-muted-foreground underline hover:no-underline p-0 h-auto cursor-pointer"
           >
-            Show options
+            {translate("crm.action.show_options")}
           </Button>
           <span className="text-sm text-muted-foreground">
-            (attach files, or change details)
+            {translate("crm.action.attach_files")}
           </span>
         </div>
       )}
@@ -88,6 +89,7 @@ export const NoteInputs = ({
           {showStatus && (
             <SelectInput
               source="status"
+              label={translate("resources.notes.fields.status")}
               choices={noteStatuses.map((status) => ({
                 id: status.value,
                 name: status.label,
@@ -100,13 +102,13 @@ export const NoteInputs = ({
           )}
           <DateTimeInput
             source="date"
-            label="Date"
+            label={translate("resources.notes.fields.date")}
             helperText={false}
             className="text-primary"
             defaultValue={getCurrentDate()}
           />
         </div>
-        <FileInput source="attachments" multiple>
+        <FileInput label={translate("crm.action.attach_files")} source="attachments" multiple>
           <AttachmentField source="src" title="title" target="_blank" />
         </FileInput>
       </div>
@@ -117,7 +119,7 @@ export const NoteInputs = ({
 const optionRenderer = (choice: any) => {
   return (
     <div>
-      <Status status={choice.value} /> {choice.name}
+      <Status status={choice.value} /> <Translate i18nKey={choice.name} />
     </div>
   );
 };

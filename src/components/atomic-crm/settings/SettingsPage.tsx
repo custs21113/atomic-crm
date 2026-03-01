@@ -1,6 +1,13 @@
 import { RotateCcw, Save } from "lucide-react";
 import type { RaRecord } from "ra-core";
-import { EditBase, Form, useGetList, useInput, useNotify } from "ra-core";
+import {
+  EditBase,
+  Form,
+  useGetList,
+  useInput,
+  useNotify,
+  useTranslate,
+} from "ra-core";
 import { useCallback, useMemo } from "react";
 import { useFormContext } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -20,11 +27,11 @@ import {
 import { defaultConfiguration } from "../root/defaultConfiguration";
 
 const SECTIONS = [
-  { id: "branding", label: "Branding" },
-  { id: "companies", label: "Companies" },
-  { id: "deals", label: "Deals" },
-  { id: "notes", label: "Notes" },
-  { id: "tasks", label: "Tasks" },
+  { id: "branding", label: "crm.settings.branding.title" },
+  { id: "companies", label: "crm.settings.companies.title" },
+  { id: "deals", label: "crm.settings.deals.title" },
+  { id: "notes", label: "crm.settings.notes.title" },
+  { id: "tasks", label: "crm.settings.tasks.title" },
 ];
 
 /** Ensure every item in a { value, label } array has a value (slug from label). */
@@ -41,6 +48,7 @@ export const validateItemsInUse = (
   deals: RaRecord[] | undefined,
   fieldName: string,
   displayName: string,
+  translate: (key: string, options?: any) => string,
 ) => {
   if (!items) return undefined;
   // Check for duplicate slugs
@@ -52,10 +60,13 @@ export const validateItemsInUse = (
     seen.add(slug);
   }
   if (duplicates.size > 0) {
-    return `Duplicate ${displayName}: ${[...duplicates].join(", ")}`;
+    return translate("crm.settings.validation.duplicate", {
+      name: displayName,
+      values: [...duplicates].join(", "),
+    });
   }
   // Check that no in-use value was removed (skip if deals haven't loaded)
-  if (!deals) return "Validating…";
+  if (!deals) return translate("crm.settings.validation.validating");
   const values = new Set(slugs);
   const inUse = [
     ...new Set(
@@ -67,7 +78,10 @@ export const validateItemsInUse = (
     ),
   ];
   if (inUse.length > 0) {
-    return `Cannot remove ${displayName} that are still used by deals: ${inUse.join(", ")}`;
+    return translate("crm.settings.validation.in_use", {
+      name: displayName,
+      values: inUse.join(", "),
+    });
   }
   return undefined;
 };
@@ -89,6 +103,7 @@ const transformFormValues = (data: Record<string, any>) => ({
 export const SettingsPage = () => {
   const updateConfiguration = useConfigurationUpdater();
   const notify = useNotify();
+  const translate = useTranslate();
 
   return (
     <EditBase
@@ -100,10 +115,10 @@ export const SettingsPage = () => {
       mutationOptions={{
         onSuccess: (data: any) => {
           updateConfiguration(data.config);
-          notify("Configuration saved successfully");
+          notify("crm.settings.actions.saved_success");
         },
         onError: () => {
-          notify("Failed to save configuration", { type: "error" });
+          notify("crm.settings.actions.saved_error", { type: "error" });
         },
       }}
     >
@@ -139,6 +154,17 @@ const SettingsForm = () => {
   );
 };
 
+const TranslatedTextInput = (props: any) => {
+  const translate = useTranslate();
+
+  return (
+    <TextInput
+      {...props}
+      format={(value: string) => (value ? translate(value) : "")}
+    />
+  );
+};
+
 const SettingsFormFields = () => {
   const {
     watch,
@@ -146,6 +172,7 @@ const SettingsFormFields = () => {
     reset,
     formState: { isSubmitting },
   } = useFormContext();
+  const translate = useTranslate();
 
   const dealStages = watch("dealStages");
   const dealPipelineStatuses: string[] = watch("dealPipelineStatuses") ?? [];
@@ -156,14 +183,14 @@ const SettingsFormFields = () => {
 
   const validateDealStages = useCallback(
     (stages: { value: string; label: string }[] | undefined) =>
-      validateItemsInUse(stages, deals, "stage", "stages"),
-    [deals],
+      validateItemsInUse(stages, deals, "stage", "stages", translate),
+    [deals, translate],
   );
 
   const validateDealCategories = useCallback(
     (categories: { value: string; label: string }[] | undefined) =>
-      validateItemsInUse(categories, deals, "category", "categories"),
-    [deals],
+      validateItemsInUse(categories, deals, "category", "categories", translate),
+    [deals, translate],
   );
 
   return (
@@ -171,7 +198,9 @@ const SettingsFormFields = () => {
       {/* Left navigation */}
       <nav className="hidden md:block w-48 shrink-0">
         <div className="sticky top-4 space-y-1">
-          <h1 className="text-2xl font-semibold px-3 mb-2">Settings</h1>
+          <h1 className="text-2xl font-semibold px-3 mb-2">
+            {translate("crm.settings.title")}
+          </h1>
           {SECTIONS.map((section) => (
             <button
               key={section.id}
@@ -183,7 +212,7 @@ const SettingsFormFields = () => {
               }}
               className="block w-full text-left px-3 py-1 text-sm rounded-md hover:text-foreground hover:bg-muted transition-colors"
             >
-              {section.label}
+              {translate(section.label)}
             </button>
           ))}
         </div>
@@ -195,12 +224,17 @@ const SettingsFormFields = () => {
         <Card id="branding">
           <CardContent className="space-y-4">
             <h2 className="text-xl font-semibold text-muted-foreground">
-              Branding
+              {translate("crm.settings.branding.title")}
             </h2>
-            <TextInput source="title" label="App Title" />
+            <TextInput
+              source="title"
+              label={translate("crm.settings.branding.app_title")}
+            />
             <div className="flex gap-8">
               <div className="flex flex-col items-center gap-1">
-                <p className="text-sm text-muted-foreground">Light Mode Logo</p>
+                <p className="text-sm text-muted-foreground">
+                  {translate("crm.settings.branding.light_logo")}
+                </p>
                 <ImageEditorField
                   source="lightModeLogo"
                   width={100}
@@ -210,7 +244,9 @@ const SettingsFormFields = () => {
                 />
               </div>
               <div className="flex flex-col items-center gap-1">
-                <p className="text-sm text-muted-foreground">Dark Mode Logo</p>
+                <p className="text-sm text-muted-foreground">
+                  {translate("crm.settings.branding.dark_logo")}
+                </p>
                 <ImageEditorField
                   source="darkModeLogo"
                   width={100}
@@ -227,10 +263,10 @@ const SettingsFormFields = () => {
         <Card id="companies">
           <CardContent className="space-y-4">
             <h2 className="text-xl font-semibold text-muted-foreground">
-              Companies
+              {translate("crm.settings.companies.title")}
             </h2>
             <h3 className="text-lg font-medium text-muted-foreground">
-              Sectors
+              {translate("crm.settings.companies.sectors")}
             </h3>
             <ArrayInput
               source="companySectors"
@@ -238,7 +274,7 @@ const SettingsFormFields = () => {
               helperText={false}
             >
               <SimpleFormIterator disableReordering disableClear>
-                <TextInput source="label" label={false} />
+                <TranslatedTextInput source="label" label={false} />
               </SimpleFormIterator>
             </ArrayInput>
           </CardContent>
@@ -248,10 +284,10 @@ const SettingsFormFields = () => {
         <Card id="deals">
           <CardContent className="space-y-4">
             <h2 className="text-xl font-semibold text-muted-foreground">
-              Deals
+              {translate("crm.settings.deals.title")}
             </h2>
             <h3 className="text-lg font-medium text-muted-foreground">
-              Stages
+              {translate("crm.settings.deals.stages")}
             </h3>
             <ArrayInput
               source="dealStages"
@@ -260,18 +296,17 @@ const SettingsFormFields = () => {
               validate={validateDealStages}
             >
               <SimpleFormIterator disableClear>
-                <TextInput source="label" label={false} />
+                <TranslatedTextInput source="label" label={false} />
               </SimpleFormIterator>
             </ArrayInput>
 
             <Separator />
 
             <h3 className="text-lg font-medium text-muted-foreground">
-              Pipeline Statuses
+              {translate("crm.settings.deals.pipeline_statuses")}
             </h3>
             <p className="text-sm text-muted-foreground">
-              Select which deal stages count as &quot;pipeline&quot; (completed)
-              deals.
+              {translate("crm.settings.deals.pipeline_instruction")}
             </p>
             <div className="flex flex-wrap gap-2">
               {dealStages?.map(
@@ -299,7 +334,7 @@ const SettingsFormFields = () => {
                         }
                       }}
                     >
-                      {stage.label || stage.value}
+                      {stage.label ? translate(stage.label) : stage.value}
                     </Button>
                   );
                 },
@@ -309,7 +344,7 @@ const SettingsFormFields = () => {
             <Separator />
 
             <h3 className="text-lg font-medium text-muted-foreground">
-              Categories
+              {translate("crm.settings.deals.categories")}
             </h3>
             <ArrayInput
               source="dealCategories"
@@ -318,7 +353,7 @@ const SettingsFormFields = () => {
               validate={validateDealCategories}
             >
               <SimpleFormIterator disableReordering disableClear>
-                <TextInput source="label" label={false} />
+                <TranslatedTextInput source="label" label={false} />
               </SimpleFormIterator>
             </ArrayInput>
           </CardContent>
@@ -328,14 +363,18 @@ const SettingsFormFields = () => {
         <Card id="notes">
           <CardContent className="space-y-4">
             <h2 className="text-xl font-semibold text-muted-foreground">
-              Notes
+              {translate("crm.settings.notes.title")}
             </h2>
             <h3 className="text-lg font-medium text-muted-foreground">
-              Statuses
+              {translate("crm.settings.notes.statuses")}
             </h3>
             <ArrayInput source="noteStatuses" label={false} helperText={false}>
               <SimpleFormIterator inline disableReordering disableClear>
-                <TextInput source="label" label={false} className="flex-1" />
+                <TranslatedTextInput
+                  source="label"
+                  label={false}
+                  className="flex-1"
+                />
                 <ColorInput source="color" />
               </SimpleFormIterator>
             </ArrayInput>
@@ -346,12 +385,14 @@ const SettingsFormFields = () => {
         <Card id="tasks">
           <CardContent className="space-y-4">
             <h2 className="text-xl font-semibold text-muted-foreground">
-              Tasks
+              {translate("crm.settings.tasks.title")}
             </h2>
-            <h3 className="text-lg font-medium text-muted-foreground">Types</h3>
+            <h3 className="text-lg font-medium text-muted-foreground">
+              {translate("crm.settings.tasks.types")}
+            </h3>
             <ArrayInput source="taskTypes" label={false} helperText={false}>
               <SimpleFormIterator disableReordering disableClear>
-                <TextInput source="label" label={false} />
+                <TranslatedTextInput source="label" label={false} />
               </SimpleFormIterator>
             </ArrayInput>
           </CardContent>
@@ -377,7 +418,7 @@ const SettingsFormFields = () => {
               }
             >
               <RotateCcw className="h-4 w-4 mr-1" />
-              Reset to Defaults
+              {translate("crm.settings.actions.reset")}
             </Button>
             <div className="flex gap-2">
               <Button
@@ -385,11 +426,13 @@ const SettingsFormFields = () => {
                 variant="outline"
                 onClick={() => window.history.back()}
               >
-                Cancel
+                {translate("crm.settings.actions.cancel")}
               </Button>
               <Button type="submit" disabled={isSubmitting}>
                 <Save className="h-4 w-4 mr-1" />
-                {isSubmitting ? "Saving..." : "Save"}
+                {isSubmitting
+                  ? translate("crm.settings.actions.saving")
+                  : translate("crm.settings.actions.save")}
               </Button>
             </div>
           </div>

@@ -1,7 +1,8 @@
 import { ResponsiveBar } from "@nivo/bar";
 import { format, startOfMonth } from "date-fns";
+import * as dateFnsLocales from "date-fns/locale";
 import { DollarSign } from "lucide-react";
-import { useGetList } from "ra-core";
+import { useGetList, useTranslate, useLocaleState } from "ra-core";
 import { memo, useMemo } from "react";
 
 import type { Deal } from "../types";
@@ -20,7 +21,14 @@ const threeMonthsAgo = new Date(
 const DEFAULT_LOCALE = "en-US";
 const CURRENCY = "USD";
 
+const getDateFnsLocale = (locale: string) => {
+  if (locale === "zh") return dateFnsLocales.zhCN;
+  return dateFnsLocales.enUS;
+};
+
 export const DealsChart = memo(() => {
+  const translate = useTranslate();
+  const [locale] = useLocaleState();
   const acceptedLanguages = navigator
     ? navigator.languages || [navigator.language]
     : [DEFAULT_LOCALE];
@@ -48,7 +56,7 @@ export const DealsChart = memo(() => {
 
     const amountByMonth = Object.keys(dealsByMonth).map((month) => {
       return {
-        date: format(month, "MMM"),
+        date: format(month, "MMM", { locale: getDateFnsLocale(locale) }),
         won: dealsByMonth[month]
           .filter((deal: Deal) => deal.stage === "won")
           .reduce((acc: number, deal: Deal) => {
@@ -90,7 +98,7 @@ export const DealsChart = memo(() => {
           <DollarSign className="text-muted-foreground w-6 h-6" />
         </div>
         <h2 className="text-xl font-semibold text-muted-foreground">
-          Upcoming Deal Revenue
+          {translate("crm.action.upcoming_deal_revenue")}
         </h2>
       </div>
       <div className="h-[400px]">
@@ -113,7 +121,7 @@ export const DealsChart = memo(() => {
           tooltip={({ value, indexValue }) => (
             <div className="p-2 bg-secondary rounded shadow inline-flex items-center gap-1 text-secondary-foreground">
               <strong>{indexValue}: </strong>&nbsp;{value > 0 ? "+" : ""}
-              {value.toLocaleString(acceptedLanguages.at(0) ?? DEFAULT_LOCALE, {
+              {value.toLocaleString((locale || acceptedLanguages.at(0)) ?? DEFAULT_LOCALE, {
                 style: "currency",
                 currency: CURRENCY,
               })}
@@ -177,7 +185,7 @@ export const DealsChart = memo(() => {
                 value: 0,
                 lineStyle: { strokeOpacity: 0 },
                 textStyle: { fill: "#2ebca6" },
-                legend: "Won",
+                legend: translate("resources.deals.stages.won"),
                 legendPosition: "top-left",
                 legendOrientation: "vertical",
               },
@@ -189,7 +197,7 @@ export const DealsChart = memo(() => {
                   strokeWidth: 1,
                 },
                 textStyle: { fill: "#e25c3b" },
-                legend: "Lost",
+                legend: translate("resources.deals.stages.lost"),
                 legendPosition: "bottom-left",
                 legendOrientation: "vertical",
               },

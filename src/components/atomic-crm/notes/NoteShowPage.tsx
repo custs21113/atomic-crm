@@ -1,5 +1,5 @@
 import { Pencil } from "lucide-react";
-import { RecordRepresentation, useGetOne, WithRecord } from "ra-core";
+import { RecordRepresentation, useGetOne, useTranslate, WithRecord } from "ra-core";
 import { useState } from "react";
 import { Link, useParams } from "react-router";
 import { ReferenceField } from "@/components/admin/reference-field";
@@ -22,6 +22,7 @@ export const NoteShowPage = () => {
     noteId: string;
   }>();
   const [editOpen, setEditOpen] = useState(false);
+  const translate = useTranslate();
 
   const { data: note, isPending } = useGetOne<ContactNote>("contact_notes", {
     id: noteId!,
@@ -41,7 +42,7 @@ export const NoteShowPage = () => {
         <div className="flex flex-1 min-w-0">
           <Link to={`/contacts/${contactId}/show`} className="flex-1 min-w-0">
             <h1 className="truncate text-xl font-semibold">
-              Note for{" "}
+              {translate("crm.action.note_for")}{" "}
               <ReferenceField
                 record={note}
                 resource="contact_notes"
@@ -62,14 +63,14 @@ export const NoteShowPage = () => {
           onClick={() => setEditOpen(true)}
         >
           <Pencil className="size-5" />
-          <span className="sr-only">Edit note</span>
+          <span className="sr-only">{translate("crm.action.edit_note")}</span>
         </Button>
       </MobileHeader>
       <MobileContent>
         <div className="mb-4">
           <div className="flex items-center space-x-2 w-full text-sm text-muted-foreground">
             <span>
-              By{" "}
+              {translate("crm.action.by")}{" "}
               <ReferenceField
                 record={note}
                 resource="contact_notes"

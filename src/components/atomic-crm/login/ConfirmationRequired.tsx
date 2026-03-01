@@ -1,8 +1,10 @@
 import { Notification } from "@/components/admin/notification";
 import { useConfigurationContext } from "../root/ConfigurationContext";
+import { useTranslate } from "ra-core";
 
 export const ConfirmationRequired = () => {
   const { darkModeLogo: logo, title } = useConfigurationContext();
+  const translate = useTranslate();
 
   return (
     <div className="h-screen p-8">
@@ -17,10 +19,9 @@ export const ConfirmationRequired = () => {
       </div>
       <div className="h-full text-center">
         <div className="max-w-sm mx-auto h-full flex flex-col justify-center gap-4">
-          <h1 className="text-2xl font-bold mb-4">Welcome to Atomic CRM</h1>
+          <h1 className="text-2xl font-bold mb-4">{translate("crm.auth.welcome")}</h1>
           <p className="text-base mb-4">
-            Please follow the link we just sent you by email to confirm your
-            account.
+            {translate("crm.auth.confirmation_required")}
           </p>
         </div>
       </div>

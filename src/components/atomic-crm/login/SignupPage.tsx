@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
-import { useDataProvider, useLogin, useNotify } from "ra-core";
+import { useDataProvider, useLogin, useNotify, useTranslate } from "ra-core";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { Navigate, useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,7 @@ export const SignupPage = () => {
     googleWorkplaceDomain,
   } = useConfigurationContext();
   const navigate = useNavigate();
+  const translate = useTranslate();
   const { data: isInitialized, isPending } = useQuery({
     queryKey: ["init"],
     queryFn: async () => {
@@ -43,7 +44,7 @@ export const SignupPage = () => {
         redirectTo: "/contacts",
       })
         .then(() => {
-          notify("Initial user successfully created");
+          notify("crm.auth.initial_user_created");
           // FIXME: We should probably provide a hook for that in the ra-core package
           queryClient.invalidateQueries({
             queryKey: ["auth", "canAccess"],
@@ -54,7 +55,7 @@ export const SignupPage = () => {
             // An email confirmation is required to continue.
             navigate(ConfirmationRequired.path);
           } else {
-            notify("Failed to log in.", {
+            notify("crm.auth.failed_to_login", {
               type: "error",
             });
             navigate("/login");
@@ -103,13 +104,13 @@ export const SignupPage = () => {
       </div>
       <div className="h-full">
         <div className="max-w-sm mx-auto h-full flex flex-col justify-center gap-4">
-          <h1 className="text-2xl font-bold mb-4">Welcome to Atomic CRM</h1>
+          <h1 className="text-2xl font-bold mb-4">{translate("crm.auth.welcome")}</h1>
           <p className="text-base mb-4">
-            Create the first user account to complete the setup.
+            {translate("crm.auth.create_first_account")}
           </p>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="flex flex-col gap-2">
-              <Label htmlFor="first_name">First name</Label>
+              <Label htmlFor="first_name">{translate("crm.auth.first_name")}123</Label>
               <Input
                 {...register("first_name", { required: true })}
                 id="first_name"
@@ -118,7 +119,7 @@ export const SignupPage = () => {
               />
             </div>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="last_name">Last name</Label>
+              <Label htmlFor="last_name">{translate("crm.auth.last_name")}</Label>
               <Input
                 {...register("last_name", { required: true })}
                 id="last_name"
@@ -127,7 +128,7 @@ export const SignupPage = () => {
               />
             </div>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{translate("crm.auth.email")}</Label>
               <Input
                 {...register("email", { required: true })}
                 id="email"
@@ -136,7 +137,7 @@ export const SignupPage = () => {
               />
             </div>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">{translate("crm.auth.password")}</Label>
               <Input
                 {...register("password", { required: true })}
                 id="password"
@@ -153,10 +154,10 @@ export const SignupPage = () => {
                 {isSignUpPending ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                    Creating...
+                    {translate("crm.auth.creating")}
                   </>
                 ) : (
-                  "Create account"
+                  translate("crm.auth.create_account")
                 )}
               </Button>
               {googleWorkplaceDomain ? (
@@ -164,7 +165,7 @@ export const SignupPage = () => {
                   className="w-full"
                   domain={googleWorkplaceDomain}
                 >
-                  Sign in with Google Workplace
+                  {translate("crm.auth.sign_in_with_google")}
                 </SSOAuthButton>
               ) : null}
             </div>

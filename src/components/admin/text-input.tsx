@@ -1,5 +1,5 @@
 import type { InputProps } from "ra-core";
-import { useInput, useResourceContext, FieldTitle } from "ra-core";
+import { useInput, useResourceContext, FieldTitle, useTranslate } from "ra-core";
 import {
   FormControl,
   FormError,
@@ -38,6 +38,7 @@ export type TextInputProps = InputProps & {
  * );
  */
 export const TextInput = (props: TextInputProps) => {
+  const translate = useTranslate()
   const resource = useResourceContext(props);
   const {
     label,

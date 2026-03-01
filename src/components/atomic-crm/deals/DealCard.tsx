@@ -1,5 +1,5 @@
 import { Draggable } from "@hello-pangea/dnd";
-import { useRedirect } from "ra-core";
+import { useRedirect, useTranslate, useLocaleState } from "ra-core";
 import { ReferenceField } from "@/components/admin/reference-field";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -30,6 +30,8 @@ export const DealCardContent = ({
 }) => {
   const { dealCategories } = useConfigurationContext();
   const redirect = useRedirect();
+  const translate = useTranslate();
+  const [locale] = useLocaleState();
   const categoryLabel = dealCategories.find(
     (c) => c.value === deal.category,
   )?.label;
@@ -66,14 +68,14 @@ export const DealCardContent = ({
           <div className="ml-3">
             <p className="text-sm font-medium mb-2">{deal.name}</p>
             <p className="text-xs text-muted-foreground">
-              {deal.amount.toLocaleString("en-US", {
+              {deal.amount.toLocaleString(locale, {
                 notation: "compact",
                 style: "currency",
                 currency: "USD",
                 currencyDisplay: "narrowSymbol",
                 minimumSignificantDigits: 3,
               })}
-              {categoryLabel ? `, ${categoryLabel}` : ""}
+              {categoryLabel ? `, ${translate(categoryLabel)}` : ""}
             </p>
           </div>
         </CardContent>

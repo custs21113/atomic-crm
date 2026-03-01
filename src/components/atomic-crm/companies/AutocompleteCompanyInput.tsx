@@ -1,13 +1,17 @@
-import { useCreate, useGetIdentity, useNotify } from "ra-core";
+import {
+  useCreate,
+  useGetIdentity,
+  useNotify,
+  useTranslate,
+} from "ra-core";
 import { AutocompleteInput } from "@/components/admin/autocomplete-input";
 import type { InputProps } from "ra-core";
 
-export const AutocompleteCompanyInput = ({
-  validate,
-}: Pick<InputProps, "validate">) => {
+export const AutocompleteCompanyInput = (props: Omit<InputProps, "source">) => {
   const [create] = useCreate();
   const { identity } = useGetIdentity();
   const notify = useNotify();
+  const translate = useTranslate();
   const handleCreateCompany = async (name?: string) => {
     if (!name) return;
     try {
@@ -24,7 +28,7 @@ export const AutocompleteCompanyInput = ({
       );
       return newCompany;
     } catch {
-      notify("An error occurred while creating the company", {
+      notify(translate("crm.companies.create_error"), {
         type: "error",
       });
     }
@@ -35,9 +39,11 @@ export const AutocompleteCompanyInput = ({
       optionText="name"
       helperText={false}
       onCreate={handleCreateCompany}
-      createItemLabel="Create %{item}"
-      createLabel="Start typing to create a new company"
-      validate={validate}
+      createItemLabel={translate("crm.companies.create_item", {
+        item: "%{item}",
+      })}
+      createLabel={translate("crm.companies.start_typing")}
+      {...props}
     />
   );
 };

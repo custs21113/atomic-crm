@@ -4,6 +4,7 @@ import {
   useInfinitePaginationContext,
   useListContext,
   useEvent,
+  useTranslate,
 } from "ra-core";
 import { Item, ItemContent, ItemMedia, ItemTitle } from "@/components/ui/item";
 import { Spinner } from "@/components/admin/spinner";
@@ -32,6 +33,7 @@ export const InfinitePagination = ({
   const { isPaused, isPending } = useListContext();
   const { fetchNextPage, hasNextPage, isFetchingNextPage } =
     useInfinitePaginationContext();
+  const translate = useTranslate();
 
   if (!fetchNextPage) {
     throw new Error(
@@ -92,7 +94,9 @@ export const InfinitePagination = ({
             <Spinner />
           </ItemMedia>
           <ItemContent>
-            <ItemTitle className="line-clamp-1">Loading...</ItemTitle>
+            <ItemTitle className="line-clamp-1">
+              {translate("crm.action.loading")}
+            </ItemTitle>
           </ItemContent>
         </Item>
       ) : (

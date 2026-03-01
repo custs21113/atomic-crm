@@ -10,6 +10,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { useTranslate } from "ra-core";
 
 import type { Tag } from "../types";
 import { colors } from "./colors";
@@ -33,6 +34,7 @@ export function TagDialog({
   const [newTagName, setNewTagName] = useState("");
   const [newTagColor, setNewTagColor] = useState(colors[0]);
   const [disabled, setDisabled] = useState(false);
+  const translate = useTranslate();
 
   const handleNewTagNameChange = (event: ChangeEvent<HTMLInputElement>) => {
     setNewTagName(event.target.value);
@@ -70,18 +72,18 @@ export function TagDialog({
 
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="tag-name">Tag name</Label>
+              <Label htmlFor="tag-name">{translate("crm.tags.tag_name")}</Label>
               <Input
                 id="tag-name"
                 autoFocus
                 value={newTagName}
                 onChange={handleNewTagNameChange}
-                placeholder="Enter tag name"
+                placeholder={translate("crm.tags.enter_tag_name")}
               />
             </div>
 
             <div className="space-y-2">
-              <Label>Color</Label>
+              <Label>{translate("crm.tags.color")}</Label>
               <div className="flex flex-wrap">
                 {colors.map((color) => (
                   <RoundButton
@@ -108,7 +110,7 @@ export function TagDialog({
               )}
             >
               <SaveIcon />
-              Save
+              {translate("crm.action.save")}
             </Button>
           </div>
         </form>

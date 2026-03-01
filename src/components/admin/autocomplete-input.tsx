@@ -37,6 +37,7 @@ import {
   FieldTitle,
   useEvent,
   useSupportCreateSuggestion,
+  useResourceContext,
 } from "ra-core";
 import { InputHelperText } from "./input-helper-text";
 
@@ -85,8 +86,8 @@ export const AutocompleteInput = (
       translateChoice?: boolean;
       placeholder?: string;
       inputText?:
-        | React.ReactNode
-        | ((option: any | undefined) => React.ReactNode);
+      | React.ReactNode
+      | ((option: any | undefined) => React.ReactNode);
     },
 ) => {
   const {
@@ -109,6 +110,7 @@ export const AutocompleteInput = (
   } = useChoicesContext(props);
   const { id, field, isRequired } = useInput({ ...props, source });
   const translate = useTranslate();
+  const formResource = useResourceContext();
   const { placeholder = translate("ra.action.search", { _: "Search..." }) } =
     props;
 
@@ -209,7 +211,7 @@ export const AutocompleteInput = (
             <FieldTitle
               label={props.label}
               source={props.source ?? source}
-              resource={resource}
+              resource={props.resource ?? formResource ?? resource}
               isRequired={isRequired}
             />
           </FormLabel>
@@ -235,7 +237,9 @@ export const AutocompleteInput = (
               {/* We handle the filtering ourselves */}
               <Command shouldFilter={!isFromReference}>
                 <CommandInput
-                  placeholder="Search..."
+                  placeholder={translate("ra.action.search", {
+                    _: "Search...",
+                  })}
                   value={filterValue}
                   onValueChange={(filter) => {
                     setFilterValue(filter);
@@ -247,7 +251,11 @@ export const AutocompleteInput = (
                   }}
                 />
                 <CommandList>
-                  <CommandEmpty>No matching item found.</CommandEmpty>
+                  <CommandEmpty>
+                    {translate("ra.message.no_results", {
+                      _: "No matching item found.",
+                    })}
+                  </CommandEmpty>
                   <CommandGroup>
                     {finalChoices.map((choice) => {
                       const isCreateItem =
@@ -260,9 +268,9 @@ export const AutocompleteInput = (
                           value={
                             isCreateItem
                               ? // if it's the create option, include the filter value so it is shown in the command input
-                                // characters before and after the filter value are required
-                                // to show the option when the filter value starts or ends with a space
-                                `?${filterValue}?`
+                              // characters before and after the filter value are required
+                              // to show the option when the filter value starts or ends with a space
+                              `?${filterValue}?`
                               : getChoiceValue(choice)
                           }
                           onSelect={() => handleChangeWithCreateSupport(choice)}

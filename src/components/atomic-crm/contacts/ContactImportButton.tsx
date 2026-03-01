@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import type { MouseEvent } from "react";
 import { Upload, Loader2 } from "lucide-react";
-import { Form, useRefresh } from "ra-core";
+import { Form, useRefresh, useTranslate } from "ra-core";
 import { Link } from "react-router";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,7 @@ import * as sampleCsv from "./contacts_export.csv?raw";
 
 export const ContactImportButton = () => {
   const [modalOpen, setModalOpen] = useState(false);
+  const translate = useTranslate();
 
   const handleOpenModal = () => {
     setModalOpen(true);
@@ -38,7 +39,7 @@ export const ContactImportButton = () => {
         onClick={handleOpenModal}
         className="flex items-center gap-2 cursor-pointer"
       >
-        <Upload /> Import CSV
+        <Upload /> {translate("crm.import_modal.btn_import_csv")}
       </Button>
       <ContactImportDialog open={modalOpen} onClose={handleCloseModal} />
     </>
@@ -59,6 +60,7 @@ export function ContactImportDialog({
   onClose,
 }: ContactImportModalProps) {
   const refresh = useRefresh();
+  const translate = useTranslate();
   const processBatch = useContactImport();
   const { importer, parseCsv, reset } = usePapaParse<ContactImportSchema>({
     batchSize: 10,
@@ -97,7 +99,7 @@ export function ContactImportDialog({
       <DialogContent className="max-w-2xl">
         <Form className="flex flex-col gap-4">
           <DialogHeader>
-            <DialogTitle>Import</DialogTitle>
+            <DialogTitle>{translate("crm.import_modal.title")}</DialogTitle>
           </DialogHeader>
 
           <div className="flex flex-col space-y-2">
@@ -106,29 +108,27 @@ export function ContactImportDialog({
                 <Alert>
                   <AlertDescription className="flex flex-row gap-4">
                     <Loader2 className="h-5 w-5 animate-spin" />
-                    The import is running, please do not close this tab.
+                    {translate("crm.import_modal.running_message")}
                   </AlertDescription>
                 </Alert>
 
                 <div className="text-sm">
-                  Imported{" "}
-                  <strong>
-                    {importer.importCount} / {importer.rowCount}
-                  </strong>{" "}
-                  contacts, with <strong>{importer.errorCount}</strong> errors.
+                  {translate("crm.import_modal.imported_stats", {
+                    current: importer.importCount,
+                    total: importer.rowCount,
+                    errors: importer.errorCount,
+                  })}
                   {importer.remainingTime !== null && (
                     <>
                       {" "}
-                      Estimated remaining time:{" "}
-                      <strong>
-                        {millisecondsToTime(importer.remainingTime)}
-                      </strong>
-                      .{" "}
+                      {translate("crm.import_modal.estimated_time", {
+                        time: millisecondsToTime(importer.remainingTime),
+                      })}{" "}
                       <button
                         onClick={handleReset}
                         className="text-red-600 underline hover:text-red-800"
                       >
-                        Stop import
+                        {translate("crm.import_modal.stop_import")}
                       </button>
                     </>
                   )}
@@ -139,8 +139,7 @@ export function ContactImportDialog({
             {importer.state === "error" && (
               <Alert variant="destructive">
                 <AlertDescription>
-                  Failed to import this file, please make sure your provided a
-                  valid CSV file.
+                  {translate("crm.import_modal.error_message")}
                 </AlertDescription>
               </Alert>
             )}
@@ -148,8 +147,10 @@ export function ContactImportDialog({
             {importer.state === "complete" && (
               <Alert>
                 <AlertDescription>
-                  Contacts import complete. Imported {importer.importCount}{" "}
-                  contacts, with {importer.errorCount} errors
+                  {translate("crm.import_modal.complete_message", {
+                    imported: importer.importCount,
+                    errors: importer.errorCount,
+                  })}
                 </AlertDescription>
               </Alert>
             )}
@@ -158,13 +159,13 @@ export function ContactImportDialog({
               <>
                 <Alert>
                   <AlertDescription className="flex flex-col gap-4">
-                    Here is a sample CSV file you can use as a template
+                    {translate("crm.import_modal.idle_message")}
                     <Button asChild variant="outline" size="sm">
                       <Link
                         to={SAMPLE_URL}
                         download={"crm_contacts_sample.csv"}
                       >
-                        Download CSV sample
+                        {translate("crm.import_modal.download_sample")}
                       </Link>
                     </Button>{" "}
                   </AlertDescription>
@@ -172,7 +173,7 @@ export function ContactImportDialog({
 
                 <FileInput
                   source="csv"
-                  label="CSV File"
+                  label={translate("crm.import_modal.csv_file")}
                   accept={{ "text/csv": [".csv"] }}
                   onChange={handleFileChange}
                 >
@@ -187,7 +188,7 @@ export function ContactImportDialog({
           <FormToolbar>
             {importer.state === "idle" ? (
               <Button onClick={startImport} disabled={!file}>
-                Import
+                {translate("crm.import_modal.btn_import")}
               </Button>
             ) : (
               <Button
@@ -195,7 +196,7 @@ export function ContactImportDialog({
                 onClick={handleClose}
                 disabled={importer.state === "running"}
               >
-                Close
+                {translate("crm.import_modal.btn_close")}
               </Button>
             )}
           </FormToolbar>

@@ -1,4 +1,4 @@
-import { FilterLiveForm, useListContext } from "ra-core";
+import { FilterLiveForm, useListContext, useTranslate } from "ra-core";
 import { SearchInput, type SearchInputProps } from "@/components/admin";
 import {
   Sheet,
@@ -32,6 +32,7 @@ export const ResponsiveFilters = ({
   } = searchInput || {};
   const isMobile = useIsMobile();
   const { setFilters, filterValues } = useListContext();
+  const translate = useTranslate();
 
   // Count active filters excluding the search filter
   const activeFiltersCount = Object.entries(filterValues || {}).filter(
@@ -61,7 +62,7 @@ export const ResponsiveFilters = ({
               variant="ghost"
               size="icon"
               className="relative size-9"
-              aria-label="Filter"
+              aria-label={translate("crm.action.filters")}
             >
               <Filter className="size-5" />
               {activeFiltersCount > 0 && (
@@ -77,7 +78,7 @@ export const ResponsiveFilters = ({
           <SheetContent side="bottom" className="h-dvh p-4 flex flex-col">
             <SheetHeader className="-p-4">
               <SheetTitle>
-                <h1 className="text-xl font-semibold">Filters</h1>
+                <h1 className="text-xl font-semibold">{translate("crm.action.filters")}</h1>
               </SheetTitle>
             </SheetHeader>
             <div className="flex-1 overflow-y-auto flex flex-col gap-3 pb-4">
@@ -93,11 +94,11 @@ export const ResponsiveFilters = ({
                     variant="secondary"
                     className="flex-1"
                   >
-                    Clear filters
+                    {translate("crm.action.clear_filters")}
                   </Button>
                 </SheetClose>
                 <SheetClose asChild>
-                  <Button className="flex-1">Apply</Button>
+                  <Button className="flex-1">{translate("crm.action.apply")}</Button>
                 </SheetClose>
               </div>
             </SheetFooter>
