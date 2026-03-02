@@ -9,8 +9,10 @@ import {
   RecordContextProvider,
   ShowBase,
   useListContext,
+  useLocaleState,
   useRecordContext,
   useShowContext,
+  useTranslate,
 } from "ra-core";
 import {
   Link,
@@ -39,6 +41,14 @@ import {
   ContextInfo,
 } from "./CompanyAside";
 import { CompanyAvatar } from "./CompanyAvatar";
+import * as dateFnsLocales from "date-fns/locale";
+
+const getDateFnsLocale = (locale: string) => {
+  // Map 'zh' to 'zhCN' or similar if needed, or just use direct property access
+  // date-fns locales are like enUS, zhCN, etc.
+  if (locale === "zh") return dateFnsLocales.zhCN;
+  return dateFnsLocales.enUS;
+};
 
 export const CompanyShow = () => {
   const isMobile = useIsMobile();
@@ -52,6 +62,7 @@ export const CompanyShow = () => {
 
 const CompanyShowContentMobile = () => {
   const { record, isPending } = useShowContext<Company>();
+  const translate = useTranslate();
   if (isPending || !record) return null;
 
   return (
@@ -60,7 +71,7 @@ const CompanyShowContentMobile = () => {
         <MobileBackButton to="/" />
         <div className="flex flex-1">
           <Link to="/">
-            <h1 className="text-xl font-semibold">Company</h1>
+            <h1 className="text-xl font-semibold">{translate("resources.companies.name", { smart_count: 1 })}</h1>
           </Link>
         </div>
       </MobileHeader>
@@ -86,6 +97,7 @@ const CompanyShowContentMobile = () => {
 const CompanyShowContent = () => {
   const { record, isPending } = useShowContext<Company>();
   const navigate = useNavigate();
+  const translate = useTranslate();
 
   // Get tab from URL or default to "activity"
   const tabMatch = useMatch("/companies/:id/show/:tab");
@@ -113,19 +125,15 @@ const CompanyShowContent = () => {
             </div>
             <Tabs defaultValue={currentTab} onValueChange={handleTabChange}>
               <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="activity">Activity</TabsTrigger>
+                <TabsTrigger value="activity">{translate("crm.section.activity")}</TabsTrigger>
                 <TabsTrigger value="contacts">
                   {record.nb_contacts
-                    ? record.nb_contacts === 1
-                      ? "1 Contact"
-                      : `${record.nb_contacts} Contacts`
-                    : "No Contacts"}
+                    ? translate("resources.contacts.name", { smart_count: record.nb_contacts })
+                    : translate("resources.contacts.name", { smart_count: 0 })}
                 </TabsTrigger>
                 {record.nb_deals ? (
                   <TabsTrigger value="deals">
-                    {record.nb_deals === 1
-                      ? "1 deal"
-                      : `${record.nb_deals} deals`}
+                    {translate("resources.deals.name", { smart_count: record.nb_deals })}
                   </TabsTrigger>
                 ) : null}
               </TabsList>
@@ -182,6 +190,8 @@ const CompanyShowContent = () => {
 const ContactsIterator = () => {
   const location = useLocation();
   const { data: contacts, error, isPending } = useListContext<Contact>();
+  const [locale] = useLocaleState();
+  const translate = useTranslate();
 
   if (isPending || error) return null;
 
@@ -206,9 +216,7 @@ const ContactsIterator = () => {
                 <div className="text-sm text-muted-foreground">
                   {contact.title}
                   {contact.nb_tasks
-                    ? ` - ${contact.nb_tasks} task${
-                        contact.nb_tasks > 1 ? "s" : ""
-                      }`
+                    ? ` - ${translate("resources.tasks.name", { smart_count: contact.nb_tasks })}`
                     : ""}
                   &nbsp; &nbsp;
                   <TagsList />
@@ -217,7 +225,11 @@ const ContactsIterator = () => {
               {contact.last_seen && (
                 <div className="text-right">
                   <div className="text-sm text-muted-foreground">
-                    last activity {formatDistance(contact.last_seen, now)} ago{" "}
+                    {translate("crm.filter.last_activity_ago", {
+                      distance: formatDistance(contact.last_seen, now, {
+                        locale: getDateFnsLocale(locale),
+                      }),
+                    })}
                     <Status status={contact.status} />
                   </div>
                 </div>
@@ -232,6 +244,7 @@ const ContactsIterator = () => {
 
 const CreateRelatedContactButton = () => {
   const company = useRecordContext<Company>();
+  const translate = useTranslate();
   return (
     <Button variant="outline" asChild size="sm" className="h-9">
       <RouterLink
@@ -240,7 +253,7 @@ const CreateRelatedContactButton = () => {
         className="flex items-center gap-2"
       >
         <UserPlus className="h-4 w-4" />
-        Add contact
+        {translate("crm.filter.add_contact")}
       </RouterLink>
     </Button>
   );
@@ -249,6 +262,9 @@ const CreateRelatedContactButton = () => {
 const DealsIterator = () => {
   const { data: deals, error, isPending } = useListContext<Deal>();
   const { dealStages, dealCategories } = useConfigurationContext();
+  const [locale] = useLocaleState();
+  const translate = useTranslate();
+
   if (isPending || error) return null;
 
   const now = Date.now();
@@ -264,8 +280,8 @@ const DealsIterator = () => {
               <div className="flex-1 min-w-0">
                 <div className="font-medium">{deal.name}</div>
                 <div className="text-sm text-muted-foreground">
-                  {findDealLabel(dealStages, deal.stage)},{" "}
-                  {deal.amount.toLocaleString("en-US", {
+                  {translate(findDealLabel(dealStages, deal.stage))},{" "}
+                  {deal.amount.toLocaleString(locale, {
                     notation: "compact",
                     style: "currency",
                     currency: "USD",
@@ -273,13 +289,17 @@ const DealsIterator = () => {
                     minimumSignificantDigits: 3,
                   })}
                   {deal.category
-                    ? `, ${dealCategories.find((c) => c.value === deal.category)?.label ?? deal.category}`
+                    ? `, ${translate(dealCategories.find((c) => c.value === deal.category)?.label ?? deal.category)}`
                     : ""}
                 </div>
               </div>
               <div className="text-right">
                 <div className="text-sm text-muted-foreground">
-                  last activity {formatDistance(deal.updated_at, now)} ago{" "}
+                  {translate("crm.filter.last_activity_ago", {
+                    distance: formatDistance(deal.updated_at, now, {
+                      locale: getDateFnsLocale(locale),
+                    }),
+                  })}
                 </div>
               </div>
             </RouterLink>

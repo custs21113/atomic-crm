@@ -79,7 +79,7 @@ export const CreateSheet = ({
   children,
   open,
   onOpenChange,
-  title = "Create",
+  title,
   redirect: redirectTo = "show",
   mutationOptions,
   defaultValues,
@@ -89,6 +89,8 @@ export const CreateSheet = ({
   const translate = useTranslate();
   const notify = useNotify();
   const redirect = useRedirect();
+
+  const effectiveTitle = title ?? translate("ra.action.create");
 
   // Handle success - close sheet in addition to default behavior
   const handleSuccess = (...args: any[]) => {
@@ -131,10 +133,10 @@ export const CreateSheet = ({
           >
             <SheetHeader className="border-b">
               <SheetTitle>
-                {typeof title === "string" ? (
-                  <span className="text-xl font-semibold">{title}</span>
+                {typeof effectiveTitle === "string" ? (
+                  <span className="text-xl font-semibold">{effectiveTitle}</span>
                 ) : (
-                  title
+                  effectiveTitle
                 )}
               </SheetTitle>
             </SheetHeader>
@@ -147,7 +149,7 @@ export const CreateSheet = ({
               <div className="flex w-full gap-4">
                 <SheetClose asChild>
                   <Button variant="ghost" className="flex-1">
-                    Close
+                    {translate("crm.action.close")}
                   </Button>
                 </SheetClose>
                 <SaveButton className="flex-1" />

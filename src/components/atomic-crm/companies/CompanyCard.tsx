@@ -1,6 +1,6 @@
 import { DollarSign } from "lucide-react";
 import { Link } from "react-router";
-import { useCreatePath, useListContext, useRecordContext } from "ra-core";
+import { useCreatePath, useListContext, useRecordContext, useTranslate } from "ra-core";
 import { ReferenceManyField } from "@/components/admin/reference-many-field";
 import { Card } from "@/components/ui/card";
 
@@ -13,6 +13,7 @@ export const CompanyCard = (props: { record?: Company }) => {
   const createPath = useCreatePath();
   const record = useRecordContext<Company>(props);
   const { companySectors } = useConfigurationContext();
+  const translate = useTranslate();
   if (!record) return null;
 
   const sectorLabel = companySectors.find(
@@ -33,7 +34,9 @@ export const CompanyCard = (props: { record?: Company }) => {
           <CompanyAvatar />
           <div className="text-center mt-1">
             <h6 className="text-sm font-medium">{record.name}</h6>
-            <p className="text-xs text-muted-foreground">{sectorLabel}</p>
+            <p className="text-xs text-muted-foreground">
+              {sectorLabel ? translate(sectorLabel) : ""}
+            </p>
           </div>
         </div>
         <div className="flex flex-row w-full justify-between gap-2">
@@ -49,11 +52,7 @@ export const CompanyCard = (props: { record?: Company }) => {
               <DollarSign className="w-4 h-4 text-muted-foreground" />
               <span className="text-sm font-medium">{record.nb_deals}</span>
               <span className="text-xs text-muted-foreground">
-                {record.nb_deals
-                  ? record.nb_deals > 1
-                    ? "deals"
-                    : "deal"
-                  : "deal"}
+                {translate("resources.deals.name", { smart_count: record.nb_deals })}
               </span>
             </div>
           ) : null}

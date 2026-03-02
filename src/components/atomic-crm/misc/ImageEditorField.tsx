@@ -1,4 +1,4 @@
-import { useFieldValue } from "ra-core";
+import { useFieldValue, useTranslate } from "ra-core";
 import { createRef, useCallback, useState } from "react";
 import type { ReactCropperElement } from "react-cropper";
 import { Cropper } from "react-cropper";
@@ -21,6 +21,7 @@ const ImageEditorField = (props: ImageEditorFieldProps) => {
   const source = getValues(props.source);
   const imageUrl = source?.src;
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const translate = useTranslate();
 
   const { type = "image", emptyText, linkPosition = "none" } = props;
 
@@ -71,7 +72,7 @@ const ImageEditorField = (props: ImageEditorFieldProps) => {
             onClick={() => setIsDialogOpen(true)}
             className="text-xs underline hover:no-underline cursor-pointer text-center"
           >
-            Change
+            {translate("crm.image.change")}
           </button>
         )}
       </div>
@@ -92,6 +93,8 @@ const ImageEditorDialog = (props: ImageEditorDialogProps) => {
   const [imageSrc, setImageSrc] = useState<string | undefined>(
     initialValue?.src,
   );
+  const translate = useTranslate();
+
   const onDrop = useCallback((files: File[]) => {
     const preview = URL.createObjectURL(files[0]);
     setFile(files[0]);
@@ -151,7 +154,7 @@ const ImageEditorDialog = (props: ImageEditorDialogProps) => {
       )}
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Upload and resize image</DialogTitle>
+          <DialogTitle>{translate("crm.image.upload_title")}</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col gap-2 justify-center">
           <div
@@ -159,9 +162,7 @@ const ImageEditorDialog = (props: ImageEditorDialogProps) => {
             {...getRootProps()}
           >
             <input {...getInputProps()} />
-            <p className="text-gray-600">
-              Drop a file to upload, or click to select it.
-            </p>
+            <p className="text-gray-600">{translate("crm.image.drop_text")}</p>
           </div>
 
           {imageSrc && (
@@ -177,10 +178,10 @@ const ImageEditorDialog = (props: ImageEditorDialogProps) => {
 
         <DialogFooter className="flex justify-between w-full">
           <Button type="button" onClick={updateImage}>
-            Update Image
+            {translate("crm.image.update")}
           </Button>
           <Button type="button" variant="destructive" onClick={deleteImage}>
-            Delete
+            {translate("crm.image.delete")}
           </Button>
         </DialogFooter>
       </DialogContent>

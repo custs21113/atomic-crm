@@ -1,114 +1,118 @@
-import { CheckCircle, Circle, Plus } from "lucide-react";
-import type { Identifier } from "ra-core";
+import {
+  useGetList,
+  useTranslate,
+} from "ra-core";
 import { Link } from "react-router";
-import { useState } from "react";
-import { CreateButton } from "@/components/admin/create-button";
-import { Progress } from "@/components/ui/progress";
+import { Check, ChevronRight } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 
-import { ContactImportButton } from "../contacts/ContactImportButton";
-import { ContactCreateSheet } from "../contacts/ContactCreateSheet";
-import { NoteCreateSheet } from "../notes/NoteCreateSheet";
-import useAppBarHeight from "../misc/useAppBarHeight";
-import { useIsMobile } from "@/hooks/use-mobile";
+import type { Contact, ContactNote } from "../types";
 
-export const DashboardStepper = ({
-  step,
-  contactId,
-}: {
-  step: number;
-  contactId?: Identifier;
-}) => {
-  const appbarHeight = useAppBarHeight();
-  const isMobile = useIsMobile();
-  const [contactCreateOpen, setContactCreateOpen] = useState(false);
-  const [noteCreateOpen, setNoteCreateOpen] = useState(false);
+export const DashboardStepper = () => {
+  const translate = useTranslate();
+  const { total: contactsTotal, isPending: contactsLoading } =
+    useGetList<Contact>("contacts", {
+      pagination: { page: 1, perPage: 1 },
+    });
+  const { total: notesTotal, isPending: notesLoading } = useGetList<ContactNote>(
+    "contact_notes",
+    {
+      pagination: { page: 1, perPage: 1 },
+    },
+  );
+
+  const pending = contactsLoading || notesLoading;
+
+  if (pending) return null;
+
+  const steps = [
+    {
+      label: translate("crm.dashboard.install_app"),
+      value: true,
+    },
+    {
+      label: translate("crm.empty.add_first_contact"),
+      value: (contactsTotal ?? 0) > 0,
+    },
+    {
+      label: translate("crm.dashboard.add_first_note"),
+      value: (notesTotal ?? 0) > 0,
+    },
+  ];
+
+  const currentStep = steps.findIndex((step) => !step.value);
+  const isComplete = currentStep === -1;
+  const progress = isComplete
+    ? 100
+    : Math.round((currentStep / steps.length) * 100);
+
+  if (isComplete) return null;
+
   return (
-    <>
-      <ContactCreateSheet
-        open={contactCreateOpen}
-        onOpenChange={setContactCreateOpen}
-      />
-      <NoteCreateSheet
-        open={noteCreateOpen}
-        onOpenChange={setNoteCreateOpen}
-        contact_id={contactId}
-      />
-      <div
-        className="flex justify-center items-center"
-        style={{
-          height: isMobile ? undefined : `calc(100dvh - ${appbarHeight}px)`,
-        }}
-      >
-        <Card className="w-full max-w-[600px]">
-          <CardContent className="px-6">
-            <div className="flex items-center justify-between mb-8">
-              <h3 className="text-lg font-bold">What's next?</h3>
-              <div className="w-[150px]">
-                <Progress value={(step / 3) * 100} className="mb-2" />
-                <div className="text-right text-sm">{step}/3 done</div>
-              </div>
-            </div>
-            <div className="flex flex-col gap-12">
-              <div className="flex gap-8 items-center">
-                <CheckCircle className="text-green-600 w-5 h-5 shrink-0" />
-                <h4 className="font-bold">Install Atomic CRM</h4>
-              </div>
-              <div className="flex gap-8 items-start">
-                {step > 1 ? (
-                  <CheckCircle className="text-green-600 w-5 h-5 mt-1 shrink-0" />
-                ) : (
-                  <Circle className="text-muted-foreground w-5 h-5 mt-1 shrink-0" />
+    <Card className="mt-6">
+      <CardHeader>
+        <CardTitle className="flex items-center justify-between">
+          {translate("crm.dashboard.whats_next")}
+          <span className="text-sm font-normal text-muted-foreground">
+            {currentStep}/{steps.length} {translate("crm.dashboard.done")}
+          </span>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Progress value={progress} className="mb-6 h-2" />
+        <div className="space-y-4">
+          {steps.map((step, index) => (
+            <div key={index} className="flex items-center gap-3">
+              <div
+                className={cn(
+                  "flex h-6 w-6 items-center justify-center rounded-full border text-xs",
+                  step.value
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-muted-foreground text-muted-foreground",
                 )}
-
-                <div className="flex flex-col gap-4">
-                  <h4 className="font-bold">Add your first contact</h4>
-
-                  <div className="flex gap-8">
-                    {isMobile ? (
-                      <Button
-                        onClick={() => setContactCreateOpen(true)}
-                        className="gap-2"
-                        variant="outline"
-                      >
-                        <Plus className="h-4 w-4" />
-                        New Contact
-                      </Button>
-                    ) : (
-                      <>
-                        <CreateButton label="New Contact" resource="contacts" />
-                        <ContactImportButton />
-                      </>
-                    )}
-                  </div>
-                </div>
+              >
+                {step.value ? <Check className="h-3 w-3" /> : index + 1}
               </div>
-              <div className="flex gap-8 items-start">
-                <Circle className="text-muted-foreground w-5 h-5 mt-1 shrink-0" />
-                <div className="flex flex-col gap-4">
-                  <h4 className="font-bold">Add your first note</h4>
-                  <p>Go to a contact page and add a note</p>
-                  {isMobile ? (
-                    <Button
-                      onClick={() => setNoteCreateOpen(true)}
-                      disabled={step < 2}
-                      className="w-[100px] gap-2"
-                    >
-                      <Plus className="h-4 w-4" />
-                      Add note
-                    </Button>
-                  ) : (
-                    <Button asChild disabled={step < 2} className="w-[100px]">
-                      <Link to={`/contacts/${contactId}/show`}>Add note</Link>
-                    </Button>
-                  )}
-                </div>
-              </div>
+              <span
+                className={cn(
+                  "text-sm font-medium",
+                  step.value ? "text-foreground" : "text-muted-foreground",
+                )}
+              >
+                {step.label}
+              </span>
             </div>
-          </CardContent>
-        </Card>
-      </div>
-    </>
+          ))}
+        </div>
+
+        {currentStep === 1 && (
+          <div className="mt-6 ml-9">
+            <Button asChild>
+              <Link to="/contacts/create">
+                {translate("crm.empty.new_contact")}
+                <ChevronRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        )}
+
+        {currentStep === 2 && (
+          <div className="mt-6 ml-9 space-y-2">
+            <p className="text-sm text-muted-foreground">
+              {translate("crm.dashboard.add_note_instruction")}
+            </p>
+            <Button asChild>
+              <Link to="/contacts">
+                {translate("crm.filter.add_note")}
+                <ChevronRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };

@@ -172,6 +172,14 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/root/messages/zh.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/root/messages/en.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/providers/types.ts",
           "type": "registry:component"
         },

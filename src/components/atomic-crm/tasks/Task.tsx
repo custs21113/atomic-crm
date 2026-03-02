@@ -1,206 +1,158 @@
-import { useQueryClient } from "@tanstack/react-query";
-import { MoreVertical } from "lucide-react";
-import { useDeleteWithUndoController, useNotify, useUpdate } from "ra-core";
-import { useEffect, useState } from "react";
-import { ReferenceField } from "@/components/admin/reference-field";
-import { DateField } from "@/components/admin/date-field";
+import {
+  useTranslate,
+  useUpdate,
+  useNotify,
+  useRefresh,
+  useRecordContext,
+} from "ra-core";
+import { format, isAfter } from "date-fns";
+import { Trash2, MoreVertical, Edit } from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
+import { Checkbox } from "@/components/ui/checkbox";
+import { Avatar as ContactAvatar } from "../contacts/Avatar";
 import { useConfigurationContext } from "../root/ConfigurationContext";
-import type { Contact, Task as TData } from "../types";
-import { TaskEdit } from "./TaskEdit";
+import type { Task as TaskType } from "../types";
 import { TaskEditSheet } from "./TaskEditSheet";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 export const Task = ({
   task,
-  showContact,
+  showContact = false,
 }: {
-  task: TData;
+  task: TaskType;
   showContact?: boolean;
 }) => {
-  const isMobile = useIsMobile();
-  const { taskTypes } = useConfigurationContext();
+  const translate = useTranslate();
+  const [update] = useUpdate();
   const notify = useNotify();
-  const queryClient = useQueryClient();
+  const refresh = useRefresh();
+  const { taskTypes } = useConfigurationContext();
+  const [editOpen, setEditOpen] = useState(false);
 
-  const [openEdit, setOpenEdit] = useState(false);
-
-  const handleCloseEdit = () => {
-    setOpenEdit(false);
-  };
-
-  const [update, { isPending: isUpdatePending, isSuccess, variables }] =
-    useUpdate();
-  const { handleDelete } = useDeleteWithUndoController({
-    record: task,
-    redirect: false,
-    mutationOptions: {
-      onSuccess() {
-        notify("Task deleted successfully", { undoable: true });
+  const handleToggle = (checked: boolean) => {
+    update(
+      "tasks",
+      {
+        id: task.id,
+        data: { done_date: checked ? new Date().toISOString() : null },
+        previousData: task,
       },
-    },
-  });
-
-  const handleEdit = () => {
-    setOpenEdit(true);
-  };
-
-  const handleCheck = () => () => {
-    update("tasks", {
-      id: task.id,
-      data: {
-        done_date: task.done_date ? null : new Date().toISOString(),
+      {
+        onSuccess: () => {
+          notify("ra.notification.updated", {
+            type: "info",
+            messageArgs: { smart_count: 1 },
+          });
+          refresh();
+        },
       },
-      previousData: task,
-    });
+    );
   };
 
-  useEffect(() => {
-    // We do not want to invalidate the query when a tack is checked or unchecked
-    if (
-      isUpdatePending ||
-      !isSuccess ||
-      variables?.data?.done_date != undefined
-    ) {
-      return;
-    }
+  const handleDelete = () => {
+    update(
+      "tasks",
+      {
+        id: task.id,
+        data: { deleted_at: new Date().toISOString() },
+        previousData: task,
+      },
+      {
+        onSuccess: () => {
+          notify("crm.tasks.deleted");
+          refresh();
+        },
+      },
+    );
+  };
 
-    queryClient.invalidateQueries({ queryKey: ["tasks", "getList"] });
-  }, [queryClient, isUpdatePending, isSuccess, variables]);
-
-  const labelId = `checkbox-list-label-${task.id}`;
+  const isOverdue =
+    task.due_date && isAfter(new Date(), new Date(task.due_date)) && !task.done_date;
 
   return (
     <>
-      <div className="flex items-start justify-between">
-        <div
-          className="flex items-start gap-2 flex-1"
-          onClick={isMobile ? handleCheck() : undefined}
-        >
-          <Checkbox
-            id={labelId}
-            checked={!!task.done_date}
-            onCheckedChange={handleCheck()}
-            disabled={isUpdatePending}
-            className="mt-1"
-          />
-          <div className={`flex-grow ${task.done_date ? "line-through" : ""}`}>
-            <div className="text-sm">
-              {task.type && task.type !== "none" && (
-                <>
-                  <span className="font-semibold text-sm">
-                    {taskTypes.find((t) => t.value === task.type)?.label ??
-                      task.type}
-                  </span>
-                  &nbsp;
-                </>
-              )}
-              {task.text}
-            </div>
-            <div className="text-sm text-muted-foreground">
-              due&nbsp;
-              <DateField source="due_date" record={task} />
-              {showContact && (
-                <ReferenceField<TData, Contact>
-                  source="contact_id"
-                  reference="contacts"
-                  record={task}
-                  link="show"
-                  className="inline text-sm text-muted-foreground"
-                  render={({ referenceRecord }) => {
-                    if (!referenceRecord) return null;
-                    return (
-                      <>
-                        {" "}
-                        (Re:&nbsp;
-                        {referenceRecord?.first_name}{" "}
-                        {referenceRecord?.last_name})
-                      </>
-                    );
-                  }}
-                />
-              )}
-            </div>
+      <div className="flex items-start gap-3 p-3 rounded-lg border bg-card text-card-foreground shadow-sm group">
+        <Checkbox
+          checked={!!task.done_date}
+          onCheckedChange={handleToggle}
+          className="mt-1"
+        />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">
+              {translate(taskTypes.find((t) => t.value === task.type)?.label ?? task.type)}
+            </span>
+            {task.due_date && (
+              <span
+                className={`text-xs ${
+                  isOverdue ? "text-destructive font-medium" : "text-muted-foreground"
+                }`}
+              >
+                {translate("crm.tasks.due_at")} {format(new Date(task.due_date), "MMM d")}
+              </span>
+            )}
           </div>
+          <p
+            className={`text-sm ${
+              task.done_date ? "line-through text-muted-foreground" : ""
+            }`}
+          >
+            {task.text}
+          </p>
+          {showContact && task.contact && (
+            <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
+              <span className="opacity-70">{translate("crm.tasks.regarding")}</span>
+              <div className="flex items-center gap-1.5 font-medium text-foreground">
+                <ContactAvatar
+                  record={task.contact}
+                  width={16}
+                  height={16}
+                  className="text-[8px]"
+                />
+                {task.contact.first_name} {task.contact.last_name}
+              </div>
+            </div>
+          )}
         </div>
-
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
               size="icon"
-              className="h-5 pr-0! size-8 cursor-pointer"
-              aria-label="task actions"
+              className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
             >
-              <MoreVertical className="size-5 md:size-4" />
+              <MoreVertical className="h-4 w-4" />
+              <span className="sr-only">
+                {translate("crm.action.show_options")}
+              </span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem
-              className="cursor-pointer h-12 md:h-8 px-4 md:px-2 text-base md:text-sm"
-              onClick={() => {
-                update("tasks", {
-                  id: task.id,
-                  data: {
-                    due_date: new Date(Date.now() + 24 * 60 * 60 * 1000)
-                      .toISOString()
-                      .slice(0, 10),
-                  },
-                  previousData: task,
-                });
-              }}
-            >
-              Postpone to tomorrow
+            <DropdownMenuItem onClick={() => setEditOpen(true)}>
+              <Edit className="mr-2 h-4 w-4" />
+              {translate("ra.action.edit")}
             </DropdownMenuItem>
             <DropdownMenuItem
-              className="cursor-pointer h-12 md:h-8 px-4 md:px-2 text-base md:text-sm"
-              onClick={() => {
-                update("tasks", {
-                  id: task.id,
-                  data: {
-                    due_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-                      .toISOString()
-                      .slice(0, 10),
-                  },
-                  previousData: task,
-                });
-              }}
-            >
-              Postpone to next week
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="cursor-pointer h-12 md:h-8 px-4 md:px-2 text-base md:text-sm"
-              onClick={handleEdit}
-            >
-              Edit
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="cursor-pointer h-12 md:h-8 px-4 md:px-2 text-base md:text-sm"
               onClick={handleDelete}
+              className="text-destructive focus:text-destructive"
             >
-              Delete
+              <Trash2 className="mr-2 h-4 w-4" />
+              {translate("ra.action.delete")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-
-      {isMobile ? (
-        <TaskEditSheet
-          taskId={task.id}
-          open={openEdit}
-          onOpenChange={setOpenEdit}
-        />
-      ) : (
-        <TaskEdit taskId={task.id} open={openEdit} close={handleCloseEdit} />
-      )}
+      <TaskEditSheet
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        taskId={task.id}
+      />
     </>
   );
 };

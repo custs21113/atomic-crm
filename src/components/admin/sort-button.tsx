@@ -123,8 +123,7 @@ const SortButtonComponent = (props: SortButtonProps) => {
               source: field,
             })}{" "}
             {translate(
-              `ra.sort.${
-                sort.field === field ? inverseOrder(sort.order) : "ASC"
+              `ra.sort.${sort.field === field ? inverseOrder(sort.order) : "ASC"
               }`,
             )}
           </DropdownMenuItem>

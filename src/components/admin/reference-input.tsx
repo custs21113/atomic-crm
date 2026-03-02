@@ -33,7 +33,7 @@ export const ReferenceInput = (props: ReferenceInputProps) => {
     );
   }
 
-  return <ReferenceInputBase {...rest}>{children}</ReferenceInputBase>;
+  return <ReferenceInputBase {...rest} >{children}</ReferenceInputBase>;
 };
 
 const defaultChildren = <AutocompleteInput />;

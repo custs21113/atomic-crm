@@ -1,41 +1,42 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useTranslate } from "ra-core";
 
-export const Welcome = () => (
-  <Card>
-    <CardHeader className="px-4">
-      <CardTitle>Your CRM Starter Kit</CardTitle>
-    </CardHeader>
-    <CardContent className="px-4">
-      <p className="text-sm mb-4">
-        <a
-          href="https://marmelab.com/atomic-crm"
-          className="underline hover:no-underline"
-        >
-          Atomic CRM
-        </a>{" "}
-        is a template designed to help you quickly build your own CRM.
-      </p>
-      <p className="text-sm mb-4">
-        This demo runs on a mock API, so you can explore and modify the data. It
-        resets on reload. The full version uses Supabase for the backend.
-      </p>
-      <p className="text-sm">
-        Powered by{" "}
-        <a
-          href="https://marmelab.com/shadcn-admin-kit"
-          className="underline hover:no-underline"
-        >
-          shadcn-admin-kit
-        </a>
-        , Atomic CRM is fully open-source. You can find the code at{" "}
-        <a
-          href="https://github.com/marmelab/atomic-crm"
-          className="underline hover:no-underline"
-        >
-          marmelab/atomic-crm
-        </a>
-        .
-      </p>
-    </CardContent>
-  </Card>
-);
+export const Welcome = () => {
+  const translate = useTranslate();
+  return (
+    <Card className="bg-gradient-to-l from-indigo-100 to-white dark:from-indigo-900 dark:to-background border-l-4 border-l-primary mt-2">
+      <CardHeader>
+        <CardTitle>
+          {translate("crm.welcome.title")}{" "}
+          <span className="font-normal text-muted-foreground">
+            {translate("crm.welcome.subtitle")}
+          </span>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <p className="text-sm text-muted-foreground max-w-4xl">
+          {translate("crm.welcome.demo_message")}
+        </p>
+        <p className="text-sm text-muted-foreground mt-4">
+          {translate("crm.welcome.powered_by")}{" "}
+          <a
+            href="https://marmelab.com/react-admin"
+            target="_blank"
+            className="text-primary hover:underline"
+          >
+            react-admin
+          </a>
+          {translate("crm.welcome.open_source")}{" "}
+          <a
+            href="https://github.com/marmelab/atomic-crm"
+            target="_blank"
+            className="text-primary hover:underline"
+          >
+            GitHub
+          </a>
+          .
+        </p>
+      </CardContent>
+    </Card>
+  );
+};

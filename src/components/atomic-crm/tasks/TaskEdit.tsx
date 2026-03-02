@@ -1,4 +1,4 @@
-import { EditBase, Form, useNotify, type Identifier } from "ra-core";
+import { EditBase, Form, useNotify, useTranslate, type Identifier } from "ra-core";
 import { DeleteButton } from "@/components/admin/delete-button";
 import { SaveButton } from "@/components/admin/form";
 import {
@@ -21,6 +21,7 @@ export const TaskEdit = ({
   close: () => void;
 }) => {
   const notify = useNotify();
+  const translate = useTranslate();
   return (
     <Dialog open={open} onOpenChange={close}>
       {taskId && (
@@ -31,9 +32,10 @@ export const TaskEdit = ({
           mutationOptions={{
             onSuccess: () => {
               close();
-              notify("Task updated", {
+              notify("ra.notification.updated", {
                 type: "info",
                 undoable: true,
+                messageArgs: { smart_count: 1 },
               });
             },
           }}
@@ -42,7 +44,12 @@ export const TaskEdit = ({
           <DialogContent className="lg:max-w-xl overflow-y-auto max-h-9/10 top-1/20 translate-y-0">
             <Form className="flex flex-col gap-4">
               <DialogHeader>
-                <DialogTitle>Edit task</DialogTitle>
+                <DialogTitle>
+                  {translate("ra.page.edit", {
+                    name: translate("resources.tasks.name", { smart_count: 1 }),
+                    recordRepresentation: "",
+                  })}
+                </DialogTitle>
               </DialogHeader>
               <TaskFormContent />
               <DialogFooter className="w-full sm:justify-between gap-4">
@@ -50,15 +57,16 @@ export const TaskEdit = ({
                   mutationOptions={{
                     onSuccess: () => {
                       close();
-                      notify("Task deleted", {
+                      notify("ra.notification.deleted", {
                         type: "info",
                         undoable: true,
+                        messageArgs: { smart_count: 1 },
                       });
                     },
                   }}
                   redirect={false}
                 />
-                <SaveButton label="Save" />
+                <SaveButton />
               </DialogFooter>
             </Form>
           </DialogContent>

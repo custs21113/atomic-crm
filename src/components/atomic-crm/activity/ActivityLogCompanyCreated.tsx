@@ -1,4 +1,5 @@
 import { Link } from "react-router";
+import { useTranslate } from "ra-core";
 
 import { ReferenceField } from "@/components/admin/reference-field";
 import { CompanyAvatar } from "../companies/CompanyAvatar";
@@ -15,6 +16,7 @@ export function ActivityLogCompanyCreated({
   activity,
 }: ActivityLogCompanyCreatedProps) {
   const context = useActivityLogContext();
+  const translate = useTranslate();
   const { company } = activity;
   return (
     <div className="p-0">
@@ -25,7 +27,7 @@ export function ActivityLogCompanyCreated({
           <ReferenceField source="sales_id" reference="sales" record={activity}>
             <SaleName />
           </ReferenceField>{" "}
-          added company{" "}
+          {translate("crm.activity.added_company")}{" "}
           <Link to={`/companies/${company.id}/show`}>{company.name}</Link>
           {context === "all" && (
             <>

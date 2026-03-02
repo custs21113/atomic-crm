@@ -84,7 +84,7 @@ export const EditSheet = ({
   children,
   open,
   onOpenChange,
-  title = "Edit",
+  title,
   redirect: redirectTo = "show",
   mutationOptions,
   mutationMode = "undoable",
@@ -96,6 +96,8 @@ export const EditSheet = ({
   const translate = useTranslate();
   const notify = useNotify();
   const redirect = useRedirect();
+
+  const effectiveTitle = title ?? translate("ra.action.edit");
 
   // Handle success - close sheet in addition to default behavior
   const handleSuccess = (...args: any[]) => {
@@ -143,10 +145,10 @@ export const EditSheet = ({
           >
             <SheetHeader className="border-b">
               <SheetTitle>
-                {typeof title === "string" ? (
-                  <span className="text-xl font-semibold">{title}</span>
+                {typeof effectiveTitle === "string" ? (
+                  <span className="text-xl font-semibold">{effectiveTitle}</span>
                 ) : (
-                  title
+                  effectiveTitle
                 )}
               </SheetTitle>
             </SheetHeader>

@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import { useGetIdentity, useGetList } from "ra-core";
+import { useGetIdentity, useGetList, useTranslate, useLocale } from "ra-core";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -9,6 +9,8 @@ import { DealCardContent } from "./DealCard";
 
 export const DealArchivedList = () => {
   const { identity } = useGetIdentity();
+  const translate = useTranslate();
+  const locale = useLocale();
   const {
     data: archivedLists,
     total,
@@ -52,15 +54,15 @@ export const DealArchivedList = () => {
         onClick={() => setOpenDialog(true)}
         className="my-4"
       >
-        View archived deals
+        {translate("crm.deals.view_archived")}
       </Button>
       <Dialog open={openDialog} onOpenChange={() => setOpenDialog(false)}>
         <DialogContent className="lg:max-w-4xl overflow-y-auto max-h-9/10 top-1/20 translate-y-0">
-          <DialogTitle>Archived Deals</DialogTitle>
+          <DialogTitle>{translate("crm.deals.archived_list")}</DialogTitle>
           <div className="flex flex-col gap-8">
             {Object.entries(archivedListsByDate).map(([date, deals]) => (
               <div key={date} className="flex flex-col gap-4">
-                <h4 className="font-bold">{getRelativeTimeString(date)}</h4>
+                <h4 className="font-bold">{getRelativeTimeString(date, locale)}</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
                   {deals.map((deal: Deal) => (
                     <div key={deal.id}>
@@ -77,7 +79,10 @@ export const DealArchivedList = () => {
   );
 };
 
-export function getRelativeTimeString(dateString: string): string {
+export function getRelativeTimeString(
+  dateString: string,
+  locale?: string,
+): string {
   const date = new Date(dateString);
   date.setHours(0, 0, 0, 0);
 
@@ -89,14 +94,14 @@ export function getRelativeTimeString(dateString: string): string {
 
   // Check if the date is more than one week old
   if (Math.abs(unitDiff) > 7) {
-    return new Intl.DateTimeFormat(undefined, {
+    return new Intl.DateTimeFormat(locale, {
       day: "numeric",
       month: "long",
     }).format(date);
   }
 
   // Intl.RelativeTimeFormat for dates within the last week
-  const rtf = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" });
+  const rtf = new Intl.RelativeTimeFormat(locale, { numeric: "auto" });
   return ucFirst(rtf.format(unitDiff, "day"));
 }
 

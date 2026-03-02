@@ -1,5 +1,5 @@
 import { Draggable } from "@hello-pangea/dnd";
-import { useRedirect, RecordContextProvider } from "ra-core";
+import { useRedirect, useTranslate, useLocaleState, RecordContextProvider } from "ra-core";
 import { ReferenceField } from "@/components/admin/reference-field";
 import { NumberField } from "@/components/admin/number-field";
 import { SelectField } from "@/components/admin/select-field";
@@ -32,6 +32,11 @@ export const DealCardContent = ({
 }) => {
   const { dealCategories } = useConfigurationContext();
   const redirect = useRedirect();
+  const translate = useTranslate();
+  const [locale] = useLocaleState();
+  const categoryLabel = dealCategories.find(
+    (c) => c.value === deal.category,
+  )?.label;
   const handleClick = () => {
     redirect(`/deals/${deal.id}/show`, undefined, undefined, undefined, {
       _scrollToTop: false,
@@ -48,11 +53,10 @@ export const DealCardContent = ({
     >
       <RecordContextProvider value={deal}>
         <Card
-          className={`py-3 transition-all duration-200 ${
-            snapshot?.isDragging
-              ? "opacity-90 transform rotate-1 shadow-lg"
-              : "shadow-sm hover:shadow-md"
-          }`}
+          className={`py-3 transition-all duration-200 ${snapshot?.isDragging
+            ? "opacity-90 transform rotate-1 shadow-lg"
+            : "shadow-sm hover:shadow-md"
+            }`}
         >
           <CardContent className="px-3 flex flex-col">
             <div className="flex-1 flex">
@@ -74,27 +78,18 @@ export const DealCardContent = ({
               </ReferenceField>
             </div>
             <p className="text-xs text-muted-foreground">
-              <NumberField
-                source="amount"
-                options={{
-                  notation: "compact",
-                  style: "currency",
-                  currency: "USD",
-                  currencyDisplay: "narrowSymbol",
-                  minimumSignificantDigits: 3,
-                }}
-              />
-              {deal.category && ", "}
-              <SelectField
-                source="category"
-                choices={dealCategories}
-                optionText="label"
-                optionValue="value"
-              />
+              {deal.amount.toLocaleString(locale, {
+                notation: "compact",
+                style: "currency",
+                currency: "USD",
+                currencyDisplay: "narrowSymbol",
+                minimumSignificantDigits: 3,
+              })}
+              {categoryLabel ? `, ${translate(categoryLabel)}` : ""}
             </p>
           </CardContent>
         </Card>
       </RecordContextProvider>
-    </div>
+    </div >
   );
 };
